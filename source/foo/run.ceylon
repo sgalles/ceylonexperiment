@@ -92,26 +92,21 @@ shared {[First, Second|None]*} smartZipRemove<First, Second>
                     firstArgPending = none;
                     Second|Finished secondArg = if(!is None pending = secondArgPending) then pending else secondIt.next();
                     secondArgPending = none;
-                    if(!is Finished firstArg){
-                        if(!is Finished secondArg){
-                            switch(comparing(firstArg, secondArg))
-                            case(equal){ 
-                                return zipping(firstArg,secondArg);
-                            }
-                            case(larger){ // firstArg > secondArg
-                                return zippingPostponeFirst(firstArg,secondArg);
-                            }
-                            case(smaller){ // firstArg < secondArg
-                                return zippingPostponeSecond(firstArg,secondArg);
-                            }
-                        }else{
-                            return zipping(firstArg,none);
-                        }
-                    }else{
-                        return if(!is Finished secondArg)
-                            then (zipping(none,secondArg))
-                            else finished;
-                    }
+                    return if(!is Finished firstArg) then ( 
+                                 if(!is Finished secondArg) then (
+                                       switch(comparing(firstArg, secondArg))
+                                            case(equal) zipping(firstArg,secondArg)
+                                            case(larger) zippingPostponeFirst(firstArg,secondArg)
+                                            case(smaller) zippingPostponeSecond(firstArg,secondArg) 
+                                   )
+                                  else zipping(firstArg,none) 
+                                )
+                           else (
+                                if(!is Finished secondArg) 
+                                then (zipping(none,secondArg))
+                                else finished 
+                           );
+                    
                 }
             }
             return iterator ;
