@@ -15,14 +15,14 @@ shared {[First?, Second?]*} smartZipOr<First, Second>
     [First?, Second?]? merge(First? first, Second? second) 
             => [first, second];
     
-    return smartZip(merge, comparing)(firstElements,secondElements);
+    return smartZip<First,Second>(merge, comparing)(firstElements,secondElements);
 }
 
 "zip two already sorted `Iterables` using the `comparing` method
  to match the elements of the Iterables. Only matching elements are kept.
  The original sort (ascending) of the two Iterables must be consistent with the `comparing`
  method."
-shared {[First?, Second?]*} smartZipAnd<First, Second>  
+shared {[First, Second]*} smartZipAnd<First, Second>  
         ( Comparison comparing(First x, Second y))
 ({First*} firstElements, {Second*} secondElements)
         given First satisfies Object
@@ -49,7 +49,7 @@ shared {[First?, Second?]*} smartZipXor<First, Second>
         => first exists != second exists then [first, second];
     
     
-    return smartZip(xor, comparing)(firstElements,secondElements);
+    return smartZip<First,Second>(xor, comparing)(firstElements,secondElements);
 }
 
 "zip two already sorted `Iterables` using the `comparing` method
@@ -57,7 +57,7 @@ shared {[First?, Second?]*} smartZipXor<First, Second>
  iterables are kept, if they do not match elements from the second Iterable.
  The original sort (ascending) of the two Iterables must be consistent with the `comparing`
  method."
-shared {[First?, Second?]*} smartZipRemove<First, Second>  
+shared {[First, Second?]*} smartZipRemove<First, Second>  
         ( Comparison comparing(First x, Second y))
 ({First*} firstElements, {Second*} secondElements)
         given First satisfies Object
@@ -67,7 +67,7 @@ shared {[First?, Second?]*} smartZipRemove<First, Second>
         => if(exists first, !exists second) then [first, null] else null;
     
     
-    return smartZip(remove, comparing)(firstElements,secondElements);
+    return smartZip<First,Second,Nothing>(remove, comparing)(firstElements,secondElements);
 }
 
 "zip two already sorted `Iterables` using the `comparing` method
@@ -75,21 +75,21 @@ shared {[First?, Second?]*} smartZipRemove<First, Second>
  methods decides if two matching items must be kept or discarded.
  The original sort (ascending) of the two Iterables must be consistent with the `comparing`
  method."
-{[First?, Second?]*} smartZip<First, Second>  
-        ([First?, Second?]? zipping(First? firstArg, Second? secondArg),
+{[First|FirstAbsent, Second|SecondAbsent]*} smartZip<First, Second, FirstAbsent=Null, SecondAbsent=Null>  
+        ([First|FirstAbsent, Second|SecondAbsent]? zipping(First? firstArg, Second? secondArg),
     Comparison comparing(First x, Second y))
 ({First*} firstArguments, {Second*} secondArguments)
         given First satisfies Object
         given Second satisfies Object
 {
-    object iterable satisfies {[First?, Second?]?*} {
-        shared actual Iterator<[First?, Second?]?> iterator() {
+    object iterable satisfies {[First|FirstAbsent, Second|SecondAbsent]?*} {
+        shared actual Iterator<[First|FirstAbsent, Second|SecondAbsent]?> iterator() {
             value firstIt = firstArguments.iterator();
             value secondIt = secondArguments.iterator();
             variable First? firstArgPending = null;
             variable Second? secondArgPending = null;
-            object iterator  satisfies Iterator<[First?, Second?]?> { 
-                shared actual [First?, Second?]?|Finished next() {
+            object iterator  satisfies Iterator<[First|FirstAbsent, Second|SecondAbsent]?> { 
+                shared actual [First|FirstAbsent, Second|SecondAbsent]?|Finished next() {
                     First|Finished firstArg = firstArgPending else firstIt.next();
                     firstArgPending = null;
                     Second|Finished secondArg = secondArgPending else secondIt.next();
@@ -109,11 +109,11 @@ shared {[First?, Second?]*} smartZipRemove<First, Second>
                                 return zipping(firstArg,null);
                             }
                         }else{
-                            return zipping(firstArg,null) else finished;
+                            return zipping(firstArg,null);
                         }
                     }else{
                         return if(!is Finished secondArg)
-                            then (zipping(null,secondArg) else finished)
+                            then (zipping(null,secondArg))
                             else finished;
                     }
                 }
@@ -148,14 +148,14 @@ shared void run(){
     assert(zipXor({},{"1"}).sequence() == [[null,"1"]]);
     assert(zipXor({1,3},{"2","3","4","5"}).sequence() == [[1,null], [null,"2"], [null,"4"],[null,"5"]]);
     
-    {[Integer?, String?]*}({Integer*}, {String*}) zipAnd = smartZipAnd(intAndString); 
+    {[Integer, String]*}({Integer*}, {String*}) zipAnd = smartZipAnd(intAndString); 
     assert(zipAnd({},{}).sequence() == []);
     assert(zipAnd({1},{"1"}).sequence() == [[1,"1"]]);
     assert(zipAnd({1},{}).sequence() == []);
     assert(zipAnd({},{"1"}).sequence() == []);
     assert(zipAnd({1,3},{"2","3","4","5"}).sequence() == [[3,"3"]]);
     
-    {[Integer?, String?]*}({Integer*}, {String*}) zipRemove = smartZipRemove(intAndString);   
+    {[Integer, String?]*}({Integer*}, {String*}) zipRemove = smartZipRemove(intAndString);   
     assert(zipRemove({},{}).sequence() == []);
     assert(zipRemove({1},{"1"}).sequence() == []);
     assert(zipRemove({1},{}).sequence() == [[1,null]]);
