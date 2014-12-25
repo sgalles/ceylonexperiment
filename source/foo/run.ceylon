@@ -77,6 +77,15 @@ shared {[First, Second|None]*} smartZipRemove<First, Second>
             value secondIt = secondArguments.iterator();
             variable First|None firstArgPending = none;
             variable Second|None secondArgPending = none;
+            
+            [First|FirstAbsent, Second|SecondAbsent]? zippingPostponeFirst(First|None firstArg, Second|None secondArg){
+                firstArgPending = firstArg;
+                return zipping(none,secondArg);
+            }
+            [First|FirstAbsent, Second|SecondAbsent]? zippingPostponeSecond(First|None firstArg, Second|None secondArg){
+                secondArgPending = secondArg;
+                return zipping(firstArg,none);
+            }
             object iterator  satisfies Iterator<[First|FirstAbsent, Second|SecondAbsent]?> { 
                 shared actual [First|FirstAbsent, Second|SecondAbsent]?|Finished next() {
                     First|Finished firstArg = if(!is None pending = firstArgPending) then pending else firstIt.next();
@@ -90,12 +99,10 @@ shared {[First, Second|None]*} smartZipRemove<First, Second>
                                 return zipping(firstArg,secondArg);
                             }
                             case(larger){ // firstArg > secondArg
-                                firstArgPending = firstArg;
-                                return zipping(none,secondArg);
+                                return zippingPostponeFirst(firstArg,secondArg);
                             }
                             case(smaller){ // firstArg < secondArg
-                                secondArgPending = secondArg;
-                                return zipping(firstArg,none);
+                                return zippingPostponeSecond(firstArg,secondArg);
                             }
                         }else{
                             return zipping(firstArg,none);
