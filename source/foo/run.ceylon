@@ -8,9 +8,7 @@
  method."
 shared {[First?, Second?]*} smartZipOr<First, Second>  
         ( Comparison comparing(First x, Second y))
-({First*} firstElements, {Second*} secondElements)
-        given First satisfies Object
-        given Second satisfies Object{
+({First*} firstElements, {Second*} secondElements){
     
     [First?, Second?]? merge(First? first, Second? second) 
             => [first, second];
@@ -24,9 +22,7 @@ shared {[First?, Second?]*} smartZipOr<First, Second>
  method."
 shared {[First, Second]*} smartZipAnd<First, Second>  
         ( Comparison comparing(First x, Second y))
-({First*} firstElements, {Second*} secondElements)
-        given First satisfies Object
-        given Second satisfies Object{
+({First*} firstElements, {Second*} secondElements){
     
     [First, Second]? intersect(First? first, Second? second)
         => if(exists first, exists second) then [first, second] else null;
@@ -41,9 +37,7 @@ shared {[First, Second]*} smartZipAnd<First, Second>
  method."
 shared {[First?, Second?]*} smartZipXor<First, Second>  
         ( Comparison comparing(First x, Second y))
-({First*} firstElements, {Second*} secondElements)
-        given First satisfies Object
-        given Second satisfies Object{
+({First*} firstElements, {Second*} secondElements){
     
     [First?, Second?]? xor(First? first, Second? second)
         => first exists != second exists then [first, second];
@@ -59,9 +53,7 @@ shared {[First?, Second?]*} smartZipXor<First, Second>
  method."
 shared {[First, Second?]*} smartZipRemove<First, Second>  
         ( Comparison comparing(First x, Second y))
-({First*} firstElements, {Second*} secondElements)
-        given First satisfies Object
-        given Second satisfies Object{
+({First*} firstElements, {Second*} secondElements){
     
     [First, Null]? remove(First? first, Second? second)
         => if(exists first, !exists second) then [first, null] else null;
@@ -78,22 +70,19 @@ shared {[First, Second?]*} smartZipRemove<First, Second>
 {[First|FirstAbsent, Second|SecondAbsent]*} smartZip<First, Second, FirstAbsent=Null, SecondAbsent=Null>  
         ([First|FirstAbsent, Second|SecondAbsent]? zipping(First? firstArg, Second? secondArg),
     Comparison comparing(First x, Second y))
-({First*} firstArguments, {Second*} secondArguments)
-        given First satisfies Object
-        given Second satisfies Object
-{
+({First*} firstArguments, {Second*} secondArguments){
     object iterable satisfies {[First|FirstAbsent, Second|SecondAbsent]?*} {
         shared actual Iterator<[First|FirstAbsent, Second|SecondAbsent]?> iterator() {
             value firstIt = firstArguments.iterator();
             value secondIt = secondArguments.iterator();
-            variable First? firstArgPending = null;
-            variable Second? secondArgPending = null;
+            variable First|None firstArgPending = none;
+            variable Second|None secondArgPending = none;
             object iterator  satisfies Iterator<[First|FirstAbsent, Second|SecondAbsent]?> { 
                 shared actual [First|FirstAbsent, Second|SecondAbsent]?|Finished next() {
-                    First|Finished firstArg = firstArgPending else firstIt.next();
-                    firstArgPending = null;
-                    Second|Finished secondArg = secondArgPending else secondIt.next();
-                    secondArgPending = null;
+                    First|Finished firstArg = if(!is None pending = firstArgPending) then pending else firstIt.next();
+                    firstArgPending = none;
+                    Second|Finished secondArg = if(!is None pending = secondArgPending) then pending else secondIt.next();
+                    secondArgPending = none;
                     if(!is Finished firstArg){
                         if(!is Finished secondArg){
                             switch(comparing(firstArg, secondArg))
@@ -124,9 +113,14 @@ shared {[First, Second?]*} smartZipRemove<First, Second>
     return iterable.coalesced;
 }
 
+abstract class None() of none {}
+object none extends None() {
+    shared actual String string = "none";
+}
+
 "test"        
 shared void run(){
-    
+     
     Comparison intAndString(Integer x, String s){
         assert(exists y = parseInteger(s));
         return x <=> y;
