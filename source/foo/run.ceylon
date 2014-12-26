@@ -10,8 +10,7 @@ shared {[First|Mismatch, Second|Mismatch]*} smartZipOr<First, Second>
         ( Comparison comparing(First x, Second y))
         ({First*} firstElements, {Second*} secondElements){
     
-    [First|Mismatch, Second|Mismatch]? merge(First|Mismatch first, Second|Mismatch second) 
-            => [first, second];
+    function merge(First|Mismatch first, Second|Mismatch second) => [first, second];
     
     return smartZip<First,Second>(merge, comparing)(firstElements,secondElements);
 }
@@ -24,7 +23,7 @@ shared {[First, Second]*} smartZipAnd<First, Second>
         ( Comparison comparing(First x, Second y))
         ({First*} firstElements, {Second*} secondElements){
     
-    [First, Second]? intersect(First|Mismatch first, Second|Mismatch second)
+   function intersect(First|Mismatch first, Second|Mismatch second)
         => if(!is Mismatch first, !is Mismatch second) then [first, second] else null;
     
     
@@ -39,7 +38,7 @@ shared {[First|Mismatch, Second|Mismatch]*} smartZipXor<First, Second>
         ( Comparison comparing(First x, Second y))
         ({First*} firstElements, {Second*} secondElements){
     
-    [First|Mismatch, Second|Mismatch]? xor(First|Mismatch first, Second|Mismatch second)
+    function xor(First|Mismatch first, Second|Mismatch second)
         => first is Mismatch != second is Mismatch then [first, second];
     
     
@@ -55,7 +54,7 @@ shared {[First, Second|Mismatch]*} smartZipRemove<First, Second>
         ( Comparison comparing(First x, Second y))
         ({First*} firstElements, {Second*} secondElements){
     
-    [First, Second|Mismatch]? remove(First|Mismatch first, Second|Mismatch second)
+    function remove(First|Mismatch first, Second|Mismatch second)
         => if(!is Mismatch first, is Mismatch second) then [first, mismatch] else null;
     
     
