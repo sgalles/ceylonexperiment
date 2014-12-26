@@ -128,14 +128,16 @@ shared void run(){
         return x <=> y;
     }
     
-    {[Integer|Mismatch, String|Mismatch]*}({Integer*}, {String*}) zipOr = smartZipOr(intAndString);   
+    
+    
+    {[Integer|Mismatch, String|Mismatch]*}({Integer*}, {String*}) zipOr = smartZipOr(intAndString);  
     assert(zipOr({},{}).sequence() == []);
     assert(zipOr({1},{"1"}).sequence() == [[1,"1"]]);
     assert(zipOr({1},{}).sequence() == [[1,mismatch]]);
     assert(zipOr({},{"1"}).sequence() == [[mismatch,"1"]]);
     assert(zipOr({1,3},{"2","3","4","5"}).sequence() == [[1,mismatch], [mismatch,"2"], [3,"3"], [mismatch,"4"], [mismatch,"5"]]);
     assert(zipOr({1,3,7,8},{"2","3","4","5"}).sequence() == [[1,mismatch], [mismatch,"2"], [3,"3"], [mismatch,"4"], [mismatch,"5"], [7,mismatch], [8,mismatch]]);
-    
+    assert(zipOr({1,1,7,7,8},{"1","2","2","3","4","5"}).sequence() == [[1, "1"], [1, mismatch], [mismatch, "2"], [mismatch, "2"], [mismatch, "3"], [mismatch, "4"], [mismatch, "5"], [7, mismatch], [7, mismatch], [8, mismatch]]);
     
     {[Integer|Mismatch, String|Mismatch]*}({Integer*}, {String*}) zipXor = smartZipXor(intAndString); 
     assert(zipXor({},{}).sequence() == []);
@@ -150,6 +152,7 @@ shared void run(){
     assert(zipAnd({1},{}).sequence() == []);
     assert(zipAnd({},{"1"}).sequence() == []);
     assert(zipAnd({1,3},{"2","3","4","5"}).sequence() == [[3,"3"]]);
+    assert(zipAnd({1,1,2,7,8},{"1","1","2","2"}).sequence() == [[1, "1"], [1, "1"], [2, "2"]]);
     
     {[Integer, String|Mismatch]*}({Integer*}, {String*}) zipRemove = smartZipRemove(intAndString);   
     assert(zipRemove({},{}).sequence() == []);
