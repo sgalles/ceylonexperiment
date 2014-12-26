@@ -8,7 +8,7 @@
  method."
 shared {[First|Mismatch, Second|Mismatch]*} smartZipOr<First, Second>  
         ( Comparison comparing(First x, Second y))
-({First*} firstElements, {Second*} secondElements){
+        ({First*} firstElements, {Second*} secondElements){
     
     [First|Mismatch, Second|Mismatch]? merge(First|Mismatch first, Second|Mismatch second) 
             => [first, second];
@@ -22,7 +22,7 @@ shared {[First|Mismatch, Second|Mismatch]*} smartZipOr<First, Second>
  method."
 shared {[First, Second]*} smartZipAnd<First, Second>  
         ( Comparison comparing(First x, Second y))
-({First*} firstElements, {Second*} secondElements){
+        ({First*} firstElements, {Second*} secondElements){
     
     [First, Second]? intersect(First|Mismatch first, Second|Mismatch second)
         => if(!is Mismatch first, !is Mismatch second) then [first, second] else null;
@@ -37,7 +37,7 @@ shared {[First, Second]*} smartZipAnd<First, Second>
  method."
 shared {[First|Mismatch, Second|Mismatch]*} smartZipXor<First, Second>  
         ( Comparison comparing(First x, Second y))
-({First*} firstElements, {Second*} secondElements){
+        ({First*} firstElements, {Second*} secondElements){
     
     [First|Mismatch, Second|Mismatch]? xor(First|Mismatch first, Second|Mismatch second)
         => first is Mismatch != second is Mismatch then [first, second];
@@ -53,7 +53,7 @@ shared {[First|Mismatch, Second|Mismatch]*} smartZipXor<First, Second>
  method."
 shared {[First, Second|Mismatch]*} smartZipRemove<First, Second>  
         ( Comparison comparing(First x, Second y))
-({First*} firstElements, {Second*} secondElements){
+        ({First*} firstElements, {Second*} secondElements){
     
     [First, Second|Mismatch]? remove(First|Mismatch first, Second|Mismatch second)
         => if(!is Mismatch first, is Mismatch second) then [first, mismatch] else null;
@@ -73,6 +73,7 @@ shared {[First, Second|Mismatch]*} smartZipRemove<First, Second>
 ({First*} firstArguments, {Second*} secondArguments){
     object iterable satisfies {[First|FirstMismatch, Second|SecondMismatch]?*} {
         shared actual Iterator<[First|FirstMismatch, Second|SecondMismatch]?> iterator() {
+            
             value firstIt = firstArguments.iterator();
             value secondIt = secondArguments.iterator();
             variable First|Mismatch firstArgPending = mismatch;
@@ -86,12 +87,13 @@ shared {[First, Second|Mismatch]*} smartZipRemove<First, Second>
                 secondArgPending = secondArg;
                 return zipping(firstArg,mismatch);
             }
+            
             object iterator  satisfies Iterator<[First|FirstMismatch, Second|SecondMismatch]?> { 
                 shared actual [First|FirstMismatch, Second|SecondMismatch]?|Finished next() {
                     First|Finished firstArg = if(!is Mismatch pending = firstArgPending) then pending else firstIt.next();
-                    firstArgPending = mismatch;
+                    firstArgPending = mismatch; // reset
                     Second|Finished secondArg = if(!is Mismatch pending = secondArgPending) then pending else secondIt.next();
-                    secondArgPending = mismatch;
+                    secondArgPending = mismatch; //reset 
                     return if(!is Finished firstArg) then ( 
                                  if(!is Finished secondArg) then (
                                        switch(comparing(firstArg, secondArg))
@@ -129,37 +131,40 @@ shared void run(){
     }
     
     
+    // OR
+    {[Integer|Mismatch, String|Mismatch]*}({Integer*}, {String*}) testZipOr = smartZipOr(intAndString);  
+    assert(testZipOr({},{}).sequence() == []);
+    assert(testZipOr({1},{"1"}).sequence() == [[1,"1"]]);
+    assert(testZipOr({1},{}).sequence() == [[1,mismatch]]);
+    assert(testZipOr({},{"1"}).sequence() == [[mismatch,"1"]]);
+    assert(testZipOr({1,3},{"2","3","4","5"}).sequence() == [[1,mismatch], [mismatch,"2"], [3,"3"], [mismatch,"4"], [mismatch,"5"]]);
+    assert(testZipOr({1,3,7,8},{"2","3","4","5"}).sequence() == [[1,mismatch], [mismatch,"2"], [3,"3"], [mismatch,"4"], [mismatch,"5"], [7,mismatch], [8,mismatch]]);
+    assert(testZipOr({1,1,7,7,8},{"1","2","2","3","4","5"}).sequence() == [[1, "1"], [1, mismatch], [mismatch, "2"], [mismatch, "2"], [mismatch, "3"], [mismatch, "4"], [mismatch, "5"], [7, mismatch], [7, mismatch], [8, mismatch]]);
     
-    {[Integer|Mismatch, String|Mismatch]*}({Integer*}, {String*}) zipOr = smartZipOr(intAndString);  
-    assert(zipOr({},{}).sequence() == []);
-    assert(zipOr({1},{"1"}).sequence() == [[1,"1"]]);
-    assert(zipOr({1},{}).sequence() == [[1,mismatch]]);
-    assert(zipOr({},{"1"}).sequence() == [[mismatch,"1"]]);
-    assert(zipOr({1,3},{"2","3","4","5"}).sequence() == [[1,mismatch], [mismatch,"2"], [3,"3"], [mismatch,"4"], [mismatch,"5"]]);
-    assert(zipOr({1,3,7,8},{"2","3","4","5"}).sequence() == [[1,mismatch], [mismatch,"2"], [3,"3"], [mismatch,"4"], [mismatch,"5"], [7,mismatch], [8,mismatch]]);
-    assert(zipOr({1,1,7,7,8},{"1","2","2","3","4","5"}).sequence() == [[1, "1"], [1, mismatch], [mismatch, "2"], [mismatch, "2"], [mismatch, "3"], [mismatch, "4"], [mismatch, "5"], [7, mismatch], [7, mismatch], [8, mismatch]]);
+    // XOR
+    {[Integer|Mismatch, String|Mismatch]*}({Integer*}, {String*}) testZipXor = smartZipXor(intAndString); 
+    assert(testZipXor({},{}).sequence() == []);
+    assert(testZipXor({1},{"1"}).sequence() == []);
+    assert(testZipXor({1},{}).sequence() == [[1,mismatch]]);
+    assert(testZipXor({},{"1"}).sequence() == [[mismatch,"1"]]);
+    assert(testZipXor({1,3},{"2","3","4","5"}).sequence() == [[1,mismatch], [mismatch,"2"], [mismatch,"4"],[mismatch,"5"]]);
     
-    {[Integer|Mismatch, String|Mismatch]*}({Integer*}, {String*}) zipXor = smartZipXor(intAndString); 
-    assert(zipXor({},{}).sequence() == []);
-    assert(zipXor({1},{"1"}).sequence() == []);
-    assert(zipXor({1},{}).sequence() == [[1,mismatch]]);
-    assert(zipXor({},{"1"}).sequence() == [[mismatch,"1"]]);
-    assert(zipXor({1,3},{"2","3","4","5"}).sequence() == [[1,mismatch], [mismatch,"2"], [mismatch,"4"],[mismatch,"5"]]);
+    // AND
+    {[Integer, String]*}({Integer*}, {String*}) testZipAnd = smartZipAnd(intAndString); 
+    assert(testZipAnd({},{}).sequence() == []);
+    assert(testZipAnd({1},{"1"}).sequence() == [[1,"1"]]);
+    assert(testZipAnd({1},{}).sequence() == []);
+    assert(testZipAnd({},{"1"}).sequence() == []);
+    assert(testZipAnd({1,3},{"2","3","4","5"}).sequence() == [[3,"3"]]);
+    assert(testZipAnd({1,1,2,7,8},{"1","1","2","2"}).sequence() == [[1, "1"], [1, "1"], [2, "2"]]);
     
-    {[Integer, String]*}({Integer*}, {String*}) zipAnd = smartZipAnd(intAndString); 
-    assert(zipAnd({},{}).sequence() == []);
-    assert(zipAnd({1},{"1"}).sequence() == [[1,"1"]]);
-    assert(zipAnd({1},{}).sequence() == []);
-    assert(zipAnd({},{"1"}).sequence() == []);
-    assert(zipAnd({1,3},{"2","3","4","5"}).sequence() == [[3,"3"]]);
-    assert(zipAnd({1,1,2,7,8},{"1","1","2","2"}).sequence() == [[1, "1"], [1, "1"], [2, "2"]]);
-    
-    {[Integer, String|Mismatch]*}({Integer*}, {String*}) zipRemove = smartZipRemove(intAndString);   
-    assert(zipRemove({},{}).sequence() == []);
-    assert(zipRemove({1},{"1"}).sequence() == []);
-    assert(zipRemove({1},{}).sequence() == [[1,mismatch]]);
-    assert(zipRemove({},{"1"}).sequence() == []);
-    assert(zipRemove({1,3},{"2","3","4","5"}).sequence() == [[1,mismatch]]);
+    // REMOVE
+    {[Integer, String|Mismatch]*}({Integer*}, {String*}) testZipRemove = smartZipRemove(intAndString);   
+    assert(testZipRemove({},{}).sequence() == []);
+    assert(testZipRemove({1},{"1"}).sequence() == []);
+    assert(testZipRemove({1},{}).sequence() == [[1,mismatch]]);
+    assert(testZipRemove({},{"1"}).sequence() == []);
+    assert(testZipRemove({1,3},{"2","3","4","5"}).sequence() == [[1,mismatch]]);
     
 }
 
