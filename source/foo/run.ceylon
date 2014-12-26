@@ -2,10 +2,8 @@
 
 
 
-"zip two already sorted `Iterables` using the `comparing` method
- to match the elements of the Iterables. All elements are kept.
- The original sort (ascending) of the two Iterables must be consistent with the `comparing`
- method."
+"**Or** smart zip. Keep all elements of both iterables"
+see (`function smartZip`)
 shared {[First|Mismatch, Second|Mismatch]*} smartZipOr<First, Second>  
         ( Comparison comparing(First x, Second y))
         ({First*} firstElements, {Second*} secondElements){
@@ -15,10 +13,8 @@ shared {[First|Mismatch, Second|Mismatch]*} smartZipOr<First, Second>
     return smartZip<First,Second>(merge, comparing)(firstElements,secondElements);
 }
 
-"zip two already sorted `Iterables` using the `comparing` method
- to match the elements of the Iterables. Only matching elements are kept.
- The original sort (ascending) of the two Iterables must be consistent with the `comparing`
- method."
+"**And** smart zip. Keep only matching elements of both iterables"
+see (`function smartZip`)
 shared {[First, Second]*} smartZipAnd<First, Second>  
         ( Comparison comparing(First x, Second y))
         ({First*} firstElements, {Second*} secondElements){
@@ -30,10 +26,8 @@ shared {[First, Second]*} smartZipAnd<First, Second>
     return smartZip(intersect, comparing)(firstElements,secondElements);
 }
 
-"zip two already sorted `Iterables` using the `comparing` method
- to match the elements of the Iterables. Only non matching elements are kept.
- The original sort (ascending) of the two Iterables must be consistent with the `comparing`
- method."
+"**Xor** smart zip. Keep only non-matching elements of both iterables"
+see (`function smartZip`)
 shared {[First|Mismatch, Second|Mismatch]*} smartZipXor<First, Second>  
         ( Comparison comparing(First x, Second y))
         ({First*} firstElements, {Second*} secondElements){
@@ -45,11 +39,8 @@ shared {[First|Mismatch, Second|Mismatch]*} smartZipXor<First, Second>
     return smartZip<First,Second>(xor, comparing)(firstElements,secondElements);
 }
 
-"zip two already sorted `Iterables` using the `comparing` method
- to match the elements of the Iterables. Only elements from the first
- iterables are kept, if they do not match elements from the second Iterable.
- The original sort (ascending) of the two Iterables must be consistent with the `comparing`
- method."
+"**Remove** smart zip. Keep only non-matching elements of first iterable"
+see (`function smartZip`)
 shared {[First, Second|Mismatch]*} smartZipRemove<First, Second>  
         ( Comparison comparing(First x, Second y))
         ({First*} firstElements, {Second*} secondElements){
@@ -61,15 +52,16 @@ shared {[First, Second|Mismatch]*} smartZipRemove<First, Second>
     return smartZip<First,Second,Nothing>(remove, comparing)(firstElements,secondElements);
 }
 
-"zip two already sorted `Iterables` using the `comparing` method
- to match the elements of the Iterables. The `zipping`
+"zip two already sorted [[Iterable]] using the [[comparing]] method
+ to match the elements of the Iterables. The [[zipping]]
  methods decides if two matching items must be kept or discarded.
- The original sort (ascending) of the two Iterables must be consistent with the `comparing`
- method."
+ The original sort of the two Iterables must be consistent with the [[comparing]]
+ method, and must be ascending."
 {[First|FirstMismatch, Second|SecondMismatch]*} smartZip<First, Second, FirstMismatch=Mismatch, SecondMismatch=Mismatch>  
         ([First|FirstMismatch, Second|SecondMismatch]? zipping(First|Mismatch firstArg, Second|Mismatch secondArg),
-    Comparison comparing(First x, Second y))
-({First*} firstArguments, {Second*} secondArguments){
+        Comparison comparing(First x, Second y))
+        ({First*} firstArguments, {Second*} secondArguments){
+    
     object iterable satisfies {[First|FirstMismatch, Second|SecondMismatch]?*} {
         shared actual Iterator<[First|FirstMismatch, Second|SecondMismatch]?> iterator() {
             
@@ -116,6 +108,7 @@ shared {[First, Second|Mismatch]*} smartZipRemove<First, Second>
     return iterable.coalesced;
 }
 
+"mismatch singleton"
 shared abstract class Mismatch() of mismatch {}
 shared object mismatch extends Mismatch() {
     shared actual String string = "mismatch";
